@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 from news.items import NewsItem
 
 
-PAGES_REGEX = re.compile(r".*?\/(\d+)", re.DOTALL)
+PAGES_REGEX = re.compile(r"^.*?\/(?P<pages>\d+)\s$", re.DOTALL)
 ARTICLE_INFO_REGEX = re.compile(
     r"^(?P<published_at>[\d\s\-:]+)\s[图文、/来源：]*(?P<author>.*?)\s点击：\[\]",
     re.DOTALL,
