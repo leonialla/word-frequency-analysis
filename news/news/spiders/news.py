@@ -23,12 +23,12 @@ class NewsSpider(scrapy.Spider):
     ]
 
     def parse(self, response):
-        statistics = response.css(
-            "body table tr:last-child table table td:first-child::text"
+        statistics = response.xpath(
+            "//body//table//tr[last()]//table//table//td[1]/text()"
         ).extract_first()
         pages = int(PAGES_REGEX.match(statistics).group(1))
-        links = response.css(
-            "body .neirong-content table tr:not(:last-child) a::attr(href)"
+        links = response.xpath(
+            "//body//*[contains(@class, 'neirong-content')]//table/tr[position() != last()]//a/@href"
         ).extract()
 
         for link in links:
@@ -40,19 +40,19 @@ class NewsSpider(scrapy.Spider):
             )
 
     def resolve_news_detail(self, response):
-        title = response.css(
-            "body [name=_newscontent_fromname] h1::text"
+        title = response.xpath(
+            "//body//*[@name='_newscontent_fromname']//h1/text()"
         ).extract_first()
 
         info = "".join(
-            response.css(
-                "body [name=_newscontent_fromname] div div:nth-child(4)::text"
+            response.xpath(
+                "//body//*[@name='_newscontent_fromname']//div/div[3]/text()"
             ).extract()
         )
         published_at, author = ARTICLE_INFO_REGEX.match(info).groups()
 
-        get_clicks_script = response.css(
-            "body [name=_newscontent_fromname] div div:nth-child(4) script::text"
+        get_clicks_script = response.xpath(
+            "//body//*[@name='_newscontent_fromname']//div/div[3]/script/text()"
         ).extract_first()
         click_type, owner, click_id = GET_CLICKS_SCRIPT_REGEX.match(
             get_clicks_script
@@ -67,13 +67,13 @@ class NewsSpider(scrapy.Spider):
         ).text
 
         content = "".join(
-            response.css(
-                "body .newstext p::text, body .newstext p span::text, body .newstext p strong::text"
+            response.xpath(
+                "//body//*[contains(@class, 'newstext')]//p/text() | //body//*[contains(@class, 'newstext')]//p//span/text() | //body//*[contains(@class, 'newstext')]//p//strong/text()"
             ).extract()
         ).replace("\xa0", "")
         image_urls = [
             urljoin("https://www.sust.edu.cn", url)
-            for url in response.css("body .newstext img::attr(src)").extract()
+            for url in response.xpath("//body//*[contains(@class, 'newstext')]//img/@src").extract()
         ]
 
         yield NewsItem(
